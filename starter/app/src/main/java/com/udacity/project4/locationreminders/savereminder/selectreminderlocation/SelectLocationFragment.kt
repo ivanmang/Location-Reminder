@@ -130,6 +130,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
+        setMapStyle(map)
         enableMyLocation()
         updateCamera()
 
@@ -140,6 +141,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             .position(poi.latLng)
                             .title(poi.name)
             )
+        }
+    }
+
+    private fun setMapStyle(map: GoogleMap) {
+        try {
+            map.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            context,
+                            R.raw.map_style
+                    )
+            )
+        } catch (e: Resources.NotFoundException) {
+
         }
     }
 
