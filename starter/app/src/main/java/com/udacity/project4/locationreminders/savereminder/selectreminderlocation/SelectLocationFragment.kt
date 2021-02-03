@@ -56,10 +56,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private val ZOOM_LEVEL = 18f
     private var currentLocation: Location? = null
-    private val runningQOrLater = android.os.Build.VERSION.SDK_INT >=
-            android.os.Build.VERSION_CODES.Q
-    private var marker: Marker? = null
+    private val runningQOrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
     private var selectedPoi: PointOfInterest? = null
+    private var permissionGranted: Boolean = false
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -136,7 +135,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         map.setOnPoiClickListener { poi ->
             selectedPoi = poi
-            marker = map.addMarker(
+            map.addMarker(
                     MarkerOptions()
                             .position(poi.latLng)
                             .title(poi.name)
@@ -174,9 +173,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 }
                 else -> REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
             }
-
-            ActivityCompat.requestPermissions(
-                    requireActivity(),
+            Log.i("hello", "requesting")
+            requestPermissions(
                     permissionsArray,
                     resultCode
             )
@@ -202,17 +200,20 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         return foregroundLocationApproved && backgroundPermissionApproved
     }
 
+
     override fun onRequestPermissionsResult(
             requestCode: Int,
             permissions: Array<String>,
             grantResults: IntArray) {
         // Check if location permissions are granted and if so enable the
         // location data layer.
-        if (requestCode == REQUEST_LOCATION_PERMISSION) {
-            if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+        if (requestCode == REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE || requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE) {
+            Log.i("hello", "onRequestPermissionsResult1")
+            if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 enableMyLocation()
             }
         }
+        updateCamera()
     }
 
 }
