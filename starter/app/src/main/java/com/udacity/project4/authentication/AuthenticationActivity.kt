@@ -19,7 +19,6 @@ import com.udacity.project4.locationreminders.RemindersActivity
 class AuthenticationActivity : AppCompatActivity() {
 
     companion object {
-        const val TAG = "MainFragment"
         const val SIGN_IN_RESULT_CODE = 1001
     }
 
@@ -50,7 +49,9 @@ class AuthenticationActivity : AppCompatActivity() {
         startActivityForResult(
             AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(
                 providers
-            ).build(), SIGN_IN_RESULT_CODE
+            )
+                .setTheme(R.style.GreenTheme)
+                .build(), SIGN_IN_RESULT_CODE
         )
     }
 
@@ -60,17 +61,12 @@ class AuthenticationActivity : AppCompatActivity() {
             val response = IdpResponse.fromResultIntent(data)
             if (resultCode == Activity.RESULT_OK) {
                 // Successfully signed in user.
-                Log.i(
-                    TAG,
-                    "Successfully signed in user " +
-                            "${FirebaseAuth.getInstance().currentUser?.displayName}!"
-                )
                 startActivity(Intent(this, RemindersActivity::class.java))
             } else {
                 // Sign in failed. If response is null the user canceled the sign-in flow using
                 // the back button. Otherwise check response.getError().getErrorCode() and handle
                 // the error.
-                Log.i(TAG, "Sign in unsuccessful ${response?.error?.errorCode}")
+                Log.i("Auth Fragment", "Sign in unsuccessful ${response?.error?.errorCode}")
             }
         }
     }
