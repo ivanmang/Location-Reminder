@@ -21,6 +21,16 @@
             android:layout_height="match_parent"
             />
 
+        <Button
+            android:id="@+id/save_button"
+            style="@style/AppTheme"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/save"
+            app:layout_constraintBottom_toBottomOf="@+id/map"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

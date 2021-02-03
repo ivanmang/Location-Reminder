@@ -33,10 +33,14 @@ import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
+import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import kotlinx.android.synthetic.main.fragment_select_location.*
+import org.koin.android.ext.android.bind
 import org.koin.android.ext.android.inject
+import java.util.*
+
 private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
@@ -54,12 +58,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private var currentLocation: Location? = null
     private val runningQOrLater = android.os.Build.VERSION.SDK_INT >=
             android.os.Build.VERSION_CODES.Q
+    private var marker: Marker? = null
+    private var selectedPoi: PointOfInterest? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+            inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         binding =
-            DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
+                DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
 
         binding.viewModel = _viewModel
         binding.lifecycleOwner = this
@@ -85,6 +91,15 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //        TODO: When the user confirms on the selected location,
         //         send back the selected location details to the view model
         //         and navigate back to the previous fragment to save the reminder and add the geofence
+        binding.saveButton.setOnClickListener {
+            selectedPoi?.let {
+                _viewModel.selectedPOI.value = it
+                _viewModel.reminderSelectedLocationStr.value = it.name
+                _viewModel.latitude.value = it.latLng.latitude
+                _viewModel.longitude.value = it.latLng.longitude
+                _viewModel.navigationCommand.value = NavigationCommand.Back
+            }
+        }
     }
 
 
@@ -113,22 +128,32 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         else -> super.onOptionsItemSelected(item)
     }
 
-    @SuppressLint("MissingPermission")
+
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         enableMyLocation()
         updateCamera()
+
+        map.setOnPoiClickListener { poi ->
+            selectedPoi = poi
+            marker = map.addMarker(
+                    MarkerOptions()
+                            .position(poi.latLng)
+                            .title(poi.name)
+            )
+        }
     }
 
+
     @SuppressLint("MissingPermission")
-    private fun updateCamera(){
+    private fun updateCamera() {
         val locationProvider = LocationServices.getFusedLocationProviderClient(activity as Activity)
-        if (isPermissionGranted()){
+        if (isPermissionGranted()) {
             val result = locationProvider.lastLocation
             result.addOnCompleteListener { task ->
-                if (task.isSuccessful){
+                if (task.isSuccessful) {
                     currentLocation = task.result!!
-                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(currentLocation!!.latitude, currentLocation!!.longitude),ZOOM_LEVEL))
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(currentLocation!!.latitude, currentLocation!!.longitude), ZOOM_LEVEL))
                 }
             }
         }
@@ -138,9 +163,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     @TargetApi(29)
     private fun enableMyLocation() {
         if (isPermissionGranted()) {
+            Log.i("hello", "enableMyLocation")
             map.isMyLocationEnabled = true
-        }
-        else {
+        } else {
             var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
             val resultCode = when {
                 runningQOrLater -> {
@@ -151,36 +176,36 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             }
 
             ActivityCompat.requestPermissions(
-                requireActivity(),
-                permissionsArray,
-                resultCode
+                    requireActivity(),
+                    permissionsArray,
+                    resultCode
             )
         }
     }
 
 
     @TargetApi(29)
-    private fun isPermissionGranted() : Boolean {
+    private fun isPermissionGranted(): Boolean {
         val foregroundLocationApproved = (
                 PackageManager.PERMISSION_GRANTED ==
                         ActivityCompat.checkSelfPermission(requireContext(),
-                            Manifest.permission.ACCESS_FINE_LOCATION))
+                                Manifest.permission.ACCESS_FINE_LOCATION))
         val backgroundPermissionApproved =
-            if (runningQOrLater) {
-                PackageManager.PERMISSION_GRANTED ==
-                        ActivityCompat.checkSelfPermission(
-                            requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                        )
-            } else {
-                true
-            }
+                if (runningQOrLater) {
+                    PackageManager.PERMISSION_GRANTED ==
+                            ActivityCompat.checkSelfPermission(
+                                    requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                            )
+                } else {
+                    true
+                }
         return foregroundLocationApproved && backgroundPermissionApproved
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray) {
+            requestCode: Int,
+            permissions: Array<String>,
+            grantResults: IntArray) {
         // Check if location permissions are granted and if so enable the
         // location data layer.
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
@@ -188,7 +213,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 enableMyLocation()
             }
         }
-        updateCamera()
     }
 
 }
