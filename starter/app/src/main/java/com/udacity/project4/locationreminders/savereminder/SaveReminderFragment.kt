@@ -72,15 +72,10 @@ class SaveReminderFragment : BaseFragment() {
             val reminder = ReminderDTO(title, description, location, latitude, longitude)
             val geofence = buildGeoFence(reminder)
             val geofencingRequest = GeofencingRequest.Builder()
-                    // The INITIAL_TRIGGER_ENTER flag indicates that geofencing service should trigger a
-                    // GEOFENCE_TRANSITION_ENTER notification when the geofence is added and if the device
-                    // is already inside that geofence.
                     .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-
-                    // Add the geofences to be monitored by geofencing service.
                     .addGeofence(geofence)
                     .build()
-            if (ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
                         .addOnSuccessListener {
                             _viewModel.validateAndSaveReminder(ReminderDataItem(
