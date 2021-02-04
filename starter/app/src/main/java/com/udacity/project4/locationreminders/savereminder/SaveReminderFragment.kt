@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
 import com.udacity.project4.R
@@ -68,32 +69,39 @@ class SaveReminderFragment : BaseFragment() {
 
             val geofencingClient = LocationServices.getGeofencingClient(context !!)
             val reminder = ReminderDTO(title, description, location, latitude, longitude)
-            val geofence = buildGeoFence(reminder)
-            val geofencingRequest = GeofencingRequest.Builder()
-                    .setInitialTrigger(0)
-                    .addGeofence(geofence)
-                    .build()
-            if (ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
-                        .addOnSuccessListener {
-                            _viewModel.validateAndSaveReminder(ReminderDataItem(
-                                    reminder.title,
-                                    reminder.description,
-                                    reminder.location,
-                                    reminder.latitude,
-                                    reminder.longitude,
-                                    reminder.id))
-                        }
-                        // 4
-                        .addOnFailureListener {
-                            Toast.makeText(context, R.string.geofences_not_added,
-                                    Toast.LENGTH_SHORT).show()
-                        }
+            if (location!= null){
+                val geofence = buildGeoFence(reminder)
+                createRequestAndSave(geofence, geofencingClient, reminder)
             }
+
 
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
+        }
+    }
+
+    private fun createRequestAndSave(geofence: Geofence?, geofencingClient: GeofencingClient, reminder: ReminderDTO) {
+        val geofencingRequest = GeofencingRequest.Builder()
+                .setInitialTrigger(0)
+                .addGeofence(geofence)
+                .build()
+        if (ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
+                    .addOnSuccessListener {
+                        _viewModel.validateAndSaveReminder(ReminderDataItem(
+                                reminder.title,
+                                reminder.description,
+                                reminder.location,
+                                reminder.latitude,
+                                reminder.longitude,
+                                reminder.id))
+                    }
+                    // 4
+                    .addOnFailureListener {
+                        Toast.makeText(context, R.string.geofences_not_added,
+                                Toast.LENGTH_SHORT).show()
+                    }
         }
     }
 
