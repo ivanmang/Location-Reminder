@@ -43,10 +43,7 @@ import java.util.*
 
 private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
-private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
-private const val REQUEST_LOCATION_PERMISSION = 1
-private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
-private const val LOCATION_PERMISSION_INDEX = 0
+private const val ZOOM_LEVEL = 18f
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
@@ -54,11 +51,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
-    private val ZOOM_LEVEL = 18f
     private var currentLocation: Location? = null
     private val runningQOrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
     private var selectedPoi: PointOfInterest? = null
-    private var permissionGranted: Boolean = false
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -176,7 +171,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     @TargetApi(29)
     private fun enableMyLocation() {
         if (isPermissionGranted()) {
-            Log.i("hello", "enableMyLocation")
             map.isMyLocationEnabled = true
         } else {
             var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -187,7 +181,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 }
                 else -> REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
             }
-            Log.i("hello", "requesting")
             requestPermissions(
                     permissionsArray,
                     resultCode
@@ -222,7 +215,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         // Check if location permissions are granted and if so enable the
         // location data layer.
         if (requestCode == REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE || requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE) {
-            Log.i("hello", "onRequestPermissionsResult1")
             if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 enableMyLocation()
             }
