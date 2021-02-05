@@ -25,6 +25,60 @@ import org.junit.Test
 @SmallTest
 class RemindersDaoTest {
 
-//    TODO: Add testing implementation to the RemindersDao.kt
+    private lateinit var database: RemindersDatabase
+
+    // Executes each task synchronously using Architecture Components.
+    @get:Rule
+    var instantExecutorRule = InstantTaskExecutorRule()
+
+    @Before
+    fun initDb() {
+        // using an in-memory database because the information stored here disappears when the
+        // process is killed
+        database = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            RemindersDatabase::class.java
+        ).build()
+    }
+
+    @After
+    fun closeDb() = database.close()
+
+    @Test
+    fun insertReminderAndGetById() = runBlockingTest {
+        val reminder = ReminderDTO("Title", "Description", "Location", 10.0, 10.0, "id1")
+        database.reminderDao().saveReminder(reminder)
+
+        val loaded = database.reminderDao().getReminderById(reminder.id)
+
+        assertThat<ReminderDTO>(loaded as ReminderDTO, notNullValue())
+        assertThat(loaded.id, `is`(reminder.id))
+        assertThat(loaded.title, `is`(reminder.title))
+        assertThat(loaded.description, `is`(reminder.description))
+        assertThat(loaded.location, `is`(reminder.location))
+        assertThat(loaded.latitude, `is`(reminder.latitude))
+        assertThat(loaded.longitude, `is`(reminder.longitude))
+    }
+
+    @Test
+    fun insertReminderAndGetAll() = runBlockingTest {
+        val reminder1 = ReminderDTO("Title1", "Description1", "Location1", 10.0, 10.0, "id1")
+        val reminder2 = ReminderDTO("Title2", "Description2", "Location2", 10.0, 10.0, "id2")
+        val reminder3 = ReminderDTO("Title3", "Description3", "Location3", 10.0, 10.0, "id3")
+        database.reminderDao().saveReminder(reminder1)
+        database.reminderDao().saveReminder(reminder2)
+        database.reminderDao().saveReminder(reminder3)
+
+        val loaded = database.reminderDao().getReminders()
+
+        assertThat<List<ReminderDTO>>(loaded, notNullValue())
+        assertThat(loaded[0].id, `is`(reminder1.id))
+        assertThat(loaded[1].id, `is`(reminder2.id))
+        assertThat(loaded[2].id, `is`(reminder3.id))
+        assertThat(loaded[0].location, `is`(reminder1.location))
+        assertThat(loaded[2].location, `is`(reminder3.location))
+        assertThat(loaded[0].title, `is`(reminder1.title))
+    }
+
 
 }

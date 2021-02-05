@@ -52,7 +52,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
     private var currentLocation: Location? = null
-    private val runningQOrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+    private val runningQOrLater = false
     private var selectedPoi: PointOfInterest? = null
 
     override fun onCreateView(
