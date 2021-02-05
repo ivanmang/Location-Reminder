@@ -5,41 +5,26 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.Activity
-import android.content.Intent
-import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Location
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
-import android.util.Log
 import android.view.*
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
-import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
-import kotlinx.android.synthetic.main.fragment_select_location.*
-import org.koin.android.ext.android.bind
 import org.koin.android.ext.android.inject
-import java.util.*
 
 private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
@@ -51,7 +36,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
-    private var currentLocation: Location? = null
+    private lateinit var lastLocation: Location
     private val runningQOrLater = false
     private var selectedPoi: PointOfInterest? = null
 
@@ -157,11 +142,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun updateCamera() {
         val locationProvider = LocationServices.getFusedLocationProviderClient(activity as Activity)
         if (isPermissionGranted()) {
-            val result = locationProvider.lastLocation
-            result.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    currentLocation = task.result!!
-                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(currentLocation!!.latitude, currentLocation!!.longitude), ZOOM_LEVEL))
+            val locationResult = locationProvider.lastLocation
+            locationResult.addOnCompleteListener { task ->
+                if (task.isSuccessful && task.result != null) {
+                        lastLocation = task.result!!
+                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lastLocation.latitude, lastLocation.longitude), ZOOM_LEVEL))
+                } else {
+                    val defaultLocation = LatLng(37.422160 ,-122.084270)
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, ZOOM_LEVEL))
                 }
             }
         }
