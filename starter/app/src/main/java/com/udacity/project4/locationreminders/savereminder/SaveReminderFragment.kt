@@ -69,10 +69,18 @@ class SaveReminderFragment : BaseFragment() {
 
             val geofencingClient = LocationServices.getGeofencingClient(context !!)
             val reminder = ReminderDTO(title, description, location, latitude, longitude)
-            if (location!= null){
+            val checkValid = ReminderDataItem(
+                reminder.title,
+                reminder.description,
+                reminder.location,
+                reminder.latitude,
+                reminder.longitude,
+                reminder.id)
+            if(_viewModel.validateEnteredData(checkValid)) {
                 val geofence = buildGeoFence(reminder)
                 createRequestAndSave(geofence, geofencingClient, reminder)
             }
+
 
 
 //            TODO: use the user entered reminder details to:
