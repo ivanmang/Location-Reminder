@@ -8,8 +8,11 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
 import android.view.*
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.location.*
@@ -37,7 +40,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
     private lateinit var lastLocation: Location
-    private val runningQOrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+    private val runningQ = android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.Q
+    private val runningROrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R
     private var selectedPoi: PointOfInterest? = null
 
     override fun onCreateView(
@@ -154,7 +158,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         } else {
             var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
             val resultCode = when {
-                runningQOrLater -> {
+                runningQ -> {
                     permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
                     REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
                 }
@@ -164,7 +168,27 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     permissionsArray,
                     resultCode
             )
+            if (runningROrLater){
+                createAlertDialogForBackgroundPermission()
+            }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun createAlertDialogForBackgroundPermission(){
+        AlertDialog.Builder(requireContext())
+                .setTitle(R.string.background_location_permission_title)
+                .setMessage(R.string.background_location_permission_message)
+                .setPositiveButton(R.string.yes) { _,_ ->
+                    // this request will take user to Application's Setting page
+                    requestPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE)
+                }
+                .setNegativeButton(R.string.no) { dialog,_ ->
+                    dialog.dismiss()
+                }
+                .create()
+                .show()
+
     }
 
 
@@ -175,7 +199,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         ActivityCompat.checkSelfPermission(requireContext(),
                                 Manifest.permission.ACCESS_FINE_LOCATION))
         val backgroundPermissionApproved =
-                if (runningQOrLater) {
+                if (runningQ || runningROrLater) {
                     PackageManager.PERMISSION_GRANTED ==
                             ActivityCompat.checkSelfPermission(
                                     requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION

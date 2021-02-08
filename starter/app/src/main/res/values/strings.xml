@@ -33,7 +33,10 @@
     <string name="welcome">Welcome</string>
     <string name="err_enter_title">Please enter title</string>
     <string name="err_select_location">Please select location</string>
-
+    <string name="background_location_permission_title"> Request for background permission </string>
+    <string name="background_location_permission_message"> We need this permission so that we can send you notification even when you are not opening the app</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
     <!-- Error strings -->
     <string name="geofence_unknown_error">Unknown error: the Geofence service is not available now.</string>
     <string name="geofence_not_available">Geofence service is not available now. Go to Settings>Location>Mode and choose High accuracy.</string>
