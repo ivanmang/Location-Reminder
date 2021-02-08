@@ -82,13 +82,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 _viewModel.longitude.value = it.position.longitude
                 _viewModel.navigationCommand.value = NavigationCommand.Back
             }
-/*            selectedLatLng?.let {
-                _viewModel.latitude.value = it.latitude
-                _viewModel.longitude.value = it.longitude
-                _viewModel.reminderSelectedLocationStr.value = it.latitude.toString() + ", \n" + it.longitude.toString()
-                _viewModel.navigationCommand.value = NavigationCommand.Back
-
-            }*/
         }
     }
 

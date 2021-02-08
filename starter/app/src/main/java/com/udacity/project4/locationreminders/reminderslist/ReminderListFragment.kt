@@ -1,5 +1,6 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
@@ -77,6 +78,7 @@ class ReminderListFragment : BaseFragment() {
             R.id.logout -> {
                 AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {
                     startActivity(Intent(context, AuthenticationActivity::class.java))
+                    requireActivity().finish()
                 }
             }
         }
