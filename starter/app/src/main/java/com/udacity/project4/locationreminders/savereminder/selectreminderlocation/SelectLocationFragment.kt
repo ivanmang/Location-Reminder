@@ -11,6 +11,7 @@ import android.location.Location
 import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
@@ -28,6 +29,7 @@ import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import java.util.*
 
 private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
@@ -42,7 +44,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var lastLocation: Location
     private val runningQ = android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.Q
     private val runningROrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R
-    private var selectedPoi: PointOfInterest? = null
+    private var selectedPointOfInterest:PointOfInterest? = null
+    private var selectedMarker : Marker? = null
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -67,13 +70,25 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun onLocationSelected() {
         binding.saveButton.setOnClickListener {
-            selectedPoi?.let {
-                _viewModel.selectedPOI.value = it
-                _viewModel.reminderSelectedLocationStr.value = it.name
-                _viewModel.latitude.value = it.latLng.latitude
-                _viewModel.longitude.value = it.latLng.longitude
+            selectedMarker?.let {
+                if (selectedPointOfInterest != null){
+                    _viewModel.selectedPOI.value = selectedPointOfInterest
+                    _viewModel.reminderSelectedLocationStr.value = selectedPointOfInterest!!.name
+                } else {
+                    _viewModel.reminderSelectedLocationStr.value = it.position.latitude.toString() + ", \n" + it.position.longitude.toString()
+                }
+
+                _viewModel.latitude.value = it.position.latitude
+                _viewModel.longitude.value = it.position.longitude
                 _viewModel.navigationCommand.value = NavigationCommand.Back
             }
+/*            selectedLatLng?.let {
+                _viewModel.latitude.value = it.latitude
+                _viewModel.longitude.value = it.longitude
+                _viewModel.reminderSelectedLocationStr.value = it.latitude.toString() + ", \n" + it.longitude.toString()
+                _viewModel.navigationCommand.value = NavigationCommand.Back
+
+            }*/
         }
     }
 
@@ -108,14 +123,55 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setMapStyle(map)
         enableMyLocation()
         updateCamera()
+        setPoiClick(map)
+        setMapLongClick(map)
+    }
 
-        map.setOnPoiClickListener { poi ->
-            selectedPoi = poi
-            map.addMarker(
-                    MarkerOptions()
-                            .position(poi.latLng)
-                            .title(poi.name)
+    private fun setMapLongClick(map: GoogleMap) {
+        map.setOnMapLongClickListener { latLng ->
+            // A Snippet is Additional text that's displayed below the title.
+            val snippet = String.format(
+                    Locale.getDefault(),
+                    getString(R.string.lat_long_snippet),
+                    latLng.latitude,
+                    latLng.longitude
             )
+            if (selectedMarker != null){
+                selectedMarker?.position = latLng
+                selectedMarker?.title = getString(R.string.dropped_pin)
+                selectedMarker?.snippet = snippet
+                selectedPointOfInterest = null
+            } else {
+                selectedMarker = map.addMarker(
+                        MarkerOptions()
+                                .position(latLng)
+                                .title(getString(R.string.dropped_pin))
+                                .snippet(snippet)
+
+                )
+            }
+            selectedMarker?.showInfoWindow()
+        }
+    }
+
+    private fun setPoiClick(map: GoogleMap) {
+        map.setOnPoiClickListener { poi ->
+            val snippet = poi.name
+            if (selectedMarker != null) {
+                selectedMarker?.position = poi.latLng
+                selectedPointOfInterest = poi
+                selectedMarker!!.snippet = snippet
+                selectedMarker!!.title = poi.name
+            } else {
+                selectedMarker = map.addMarker(
+                        MarkerOptions()
+                                .position(poi.latLng)
+                                .title(poi.name)
+                                .snippet(snippet)
+                )
+            }
+            selectedMarker?.showInfoWindow()
+
         }
     }
 
