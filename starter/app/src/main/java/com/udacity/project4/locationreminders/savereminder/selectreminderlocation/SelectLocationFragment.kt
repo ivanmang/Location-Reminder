@@ -10,6 +10,7 @@ import android.content.res.Resources
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -266,10 +267,15 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             grantResults: IntArray) {
         // Check if location permissions are granted and if so enable the
         // location data layer.
-        if (requestCode == REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE || requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE) {
-            if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                enableMyLocation()
-            }
+        if (
+                grantResults.isEmpty() ||
+                grantResults[0] == PackageManager.PERMISSION_DENIED ||
+                (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
+                        grantResults[1] ==
+                        PackageManager.PERMISSION_DENIED)){
+            Toast.makeText(requireContext(), getString(R.string.permission_denied_explanation), Toast.LENGTH_LONG).show()
+        } else {
+            enableMyLocation()
         }
         updateCamera()
     }
