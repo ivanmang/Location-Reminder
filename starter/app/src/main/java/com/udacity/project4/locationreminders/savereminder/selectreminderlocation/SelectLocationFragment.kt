@@ -237,10 +237,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
                     //Only foreground permission granted
                     if (isForegroundLocationGranted()) {
-                        permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                        requestPermissions(
-                                permissionsArray,
-                                REQUEST_BACKGROUND_PERMISSION_RESULT_CODE)
+                        AlertDialog.Builder(requireContext())
+                            .setTitle(R.string.background_location_permission_title)
+                            .setMessage(R.string.background_location_permission_message)
+                            .setPositiveButton(R.string.yes) { _,_ ->
+                                // this request will take user to Application's Setting page
+                                requestPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE)
+                            }
+                            .setNegativeButton(R.string.no) { dialog, _ ->
+                                dialog.dismiss()
+                            }.show()
                     } else {
                         // Only Background is granted
                         requestPermissions(
@@ -308,6 +314,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if ((grantResults.isNotEmpty() &&
                         grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
             enableMyLocation()
+            map.clear()
             Log.i("location", "permitted")
 
         } else {

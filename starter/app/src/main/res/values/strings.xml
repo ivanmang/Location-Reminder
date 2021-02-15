@@ -20,6 +20,7 @@
     <string name="dropped_pin">Dropped Pin</string>
     <string name="poi">poi</string>
     <string name="location_required_error">Location services must be enabled to use the app</string>
+    <string name="permission_background_denied_explanation">To let the app remind your location when not in use, You need to grant location permission all time.</string>
     <string name="permission_denied_explanation">You need to grant location permission in order to select the location.</string>
     <string name="permission_in_setting">You need to change the location Mode to either High accuracy in order to use this app</string>
     <string name="settings">Settings</string>
