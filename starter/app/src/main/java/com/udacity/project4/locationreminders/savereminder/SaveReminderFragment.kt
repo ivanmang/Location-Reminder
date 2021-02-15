@@ -4,11 +4,15 @@ import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.location.Geofence
@@ -104,6 +108,15 @@ class SaveReminderFragment : BaseFragment() {
                     }
                     // 4
                     .addOnFailureListener {
+                        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+                            AlertDialog.Builder(requireContext())
+                                    .setMessage(R.string.permission_in_setting)
+                                    .setPositiveButton(R.string.go_to_setting) { _,_ ->
+                                        startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                                    }
+                                    .create()
+                                    .show()
+                        }
                         Toast.makeText(context, R.string.geofences_not_added,
                                 Toast.LENGTH_SHORT).show()
                     }
